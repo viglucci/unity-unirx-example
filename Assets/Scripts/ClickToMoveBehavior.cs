@@ -1,4 +1,3 @@
-using System;
 using UniRx;
 using UnityEngine;
 
@@ -15,35 +14,28 @@ public class ClickToMoveBehavior : MonoBehaviour
         
         _cam = Camera.main;
         _nextPosition = transform.position;
-        
+
         var leftClicks = Observable
             .EveryUpdate()
-            .Where(_ => Input.GetMouseButtonDown(0));
-
-        var doubleClicks = leftClicks
-            .Buffer(leftClicks.Throttle(TimeSpan.FromMilliseconds(250)))
-            .Select(xs => xs.Count)
-            .Where(count => count >= 2);
+            // If the player clicks OR holds down the left mouse button
+            .Where(_ => Input.GetMouseButtonUp(0) || Input.GetMouseButton(0));
         
-        doubleClicks.Subscribe(_ => OnDoubleClick());
+        leftClicks.Subscribe(_ => OnLeftClickOrHold());
     }
 
-    private void OnDoubleClick()
+    private void OnLeftClickOrHold()
     {
-        Debug.Log("DoubleClick Detected!");
-
         MoveToMousePosition();
     }
 
     private void MoveToMousePosition()
     {
-        var mousePos = new Vector2
-        {
-            x = Input.mousePosition.x,
-            y = Input.mousePosition.y
-        };
+        var mousePos = new Vector3(
+            Input.mousePosition.x, 
+            Input.mousePosition.y, 
+            0.0f);
 
-        _nextPosition = _cam.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, 0.0f));
+        _nextPosition = _cam.ScreenToWorldPoint(mousePos);
     }
 
     // Update is called once per frame
