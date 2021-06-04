@@ -336,8 +336,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   idleDownAnimator: {fileID: 9100000, guid: 8b793cae8fffcc14590914dae16f6965, type: 2}
   idleUpAnimator: {fileID: 9100000, guid: 8ee5e89a319f66542a650c2b47967c86, type: 2}
+  idleSideAnimator: {fileID: 9100000, guid: c24b834e88000314e87596380ca3734b, type: 2}
   walkDownAnimator: {fileID: 9100000, guid: e1c1b77c71030894e837e9ba2c627fae, type: 2}
   walkUpAnimator: {fileID: 9100000, guid: 0a83a927a985d7748a38fd042093f391, type: 2}
+  walkSideAnimator: {fileID: 9100000, guid: 41465f9f13b95f54aa04d839e97b635b, type: 2}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,40 +1,46 @@
 using System;
-using DefaultNamespace;
 using UniRx;
 using UnityEngine;
 
 public class PlayerMovementControllerBehavior : MonoBehaviour
 {
     private const float Speed = 5.0f;
-    private Vector2 _nextPosition;
+    private const double XDeltaThreshold = 1.0;
+    private Vector3 _nextPosition;
     private Camera _cam;
-    private PlayerMovementState _currentMovementState = PlayerMovementState.DownIdle;
-    private readonly Subject<PlayerMovementState> _movementUpdates = new Subject<PlayerMovementState>();
+    private MovementStatus _currentMovementStatus = MovementStatus.DownIdle;
+    private readonly Subject<MovementStatus> _movementUpdates = new Subject<MovementStatus>();
+    private readonly Subject<Vector2> _moveTowardsUpdates = new Subject<Vector2>();
 
-    public IObservable<PlayerMovementState> MovementState =>
+    public IObservable<MovementStatus> MovementState =>
         _movementUpdates.AsObservable();
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         Debug.Log("ClickToMoveBehavior.Start");
 
         _cam = Camera.main;
 
-        var leftClicks = Observable
+        SubscribeToMovementInput();
+
+        _movementUpdates.Subscribe(value => Debug.Log(value));
+
+        _moveTowardsUpdates.Subscribe(
+            nextPos => transform.position = nextPos);
+    }
+
+    private void SubscribeToMovementInput()
+    {
+        Observable
             .EveryUpdate()
             // If the player clicks OR holds down the left mouse button
-            .Where(_ => Input.GetMouseButtonUp(0) || Input.GetMouseButton(0));
-
-        leftClicks.Subscribe(_ => OnLeftClickOrHold());
+            .Where(_ => Input.GetMouseButtonUp(0) || Input.GetMouseButton(0))
+            // Perform an action anytime a value is emitted
+            .Subscribe(_ => AssignNextPosition());
     }
 
-    private void OnLeftClickOrHold()
-    {
-        MoveToMousePosition();
-    }
-
-    private void MoveToMousePosition()
+    private void AssignNextPosition()
     {
         var mousePos = new Vector3(
             Input.mousePosition.x,
@@ -42,56 +48,64 @@ public class PlayerMovementControllerBehavior : MonoBehaviour
             0.0f);
 
         _nextPosition = _cam.ScreenToWorldPoint(mousePos);
-        
-        var nextState = DetermineNextMovementState();
-        if (nextState == _currentMovementState) return;
-        
-        _currentMovementState = nextState;
-        _movementUpdates.OnNext(nextState);
+
+        UpdateMovementState();
     }
 
-    private PlayerMovementState DetermineNextMovementState()
+    private void UpdateMovementState()
     {
-        var nextState = _currentMovementState;
+        MovementStatus nextStatus;
         var hasReachedDestination = HasReachedDestination();
-        switch (_currentMovementState)
+        switch (_currentMovementStatus)
         {
-            case PlayerMovementState.DownMove when hasReachedDestination:
-                nextState = PlayerMovementState.DownIdle;
+            case MovementStatus.DownMove when hasReachedDestination:
+                nextStatus = MovementStatus.DownIdle;
                 break;
-            case PlayerMovementState.UpMove when hasReachedDestination:
-                nextState = PlayerMovementState.UpIdle;
+            case MovementStatus.UpMove when hasReachedDestination:
+                nextStatus = MovementStatus.UpIdle;
                 break;
             default:
             {
-                if (_nextPosition.y > transform.position.y)
+                var position = transform.position;
+                var direction = (_nextPosition - position).normalized;
+                var xDelta = Math.Abs(direction.x);
+                var yDelta = Math.Abs(direction.y);
+
+                if (yDelta > xDelta)
                 {
-                    nextState = PlayerMovementState.UpMove;
+                    // up or down
+                    nextStatus = direction.y >= 0f 
+                        ? MovementStatus.UpMove 
+                        : MovementStatus.DownMove;
                 }
-                else if (_nextPosition.y < transform.position.y)
+                else
                 {
-                    nextState = PlayerMovementState.DownMove;
+                    // left or right
+                    nextStatus = direction.x >= 0f 
+                        ? MovementStatus.RightMove 
+                        : MovementStatus.LeftMove;
                 }
 
                 break;
             }
         }
 
-        return nextState;
+        if (nextStatus == _currentMovementStatus) return;
+
+        _currentMovementStatus = nextStatus;
+        _movementUpdates.OnNext(nextStatus);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if (!HasReachedDestination())
-        {
-            MoveTowardsNextPosition();
-        }
-        else if (_currentMovementState != PlayerMovementState.DownIdle &&
-                 _currentMovementState != PlayerMovementState.UpIdle)
+        if (HasReachedDestination())
         {
             // We reached our destination so we need to update our state
-            UpdateStationaryMovementState();
+            UpdateAndEmitStationaryMovementState();
+        }
+        else
+        {
+            MoveTowardsNextPosition();
         }
     }
 
@@ -102,28 +116,27 @@ public class PlayerMovementControllerBehavior : MonoBehaviour
 
     private void MoveTowardsNextPosition()
     {
-        var position = transform.position;
+        var currentPosition = transform.position;
         var step = Speed * Time.deltaTime;
-        position = Vector2.MoveTowards(position, _nextPosition, step);
-        transform.position = position;
+        var nextPosition = Vector2.MoveTowards(currentPosition, _nextPosition, step);
+        _moveTowardsUpdates.OnNext(nextPosition);
     }
 
-    private void UpdateStationaryMovementState()
+    private void UpdateAndEmitStationaryMovementState()
     {
-        switch (_currentMovementState)
-        {
-            case PlayerMovementState.RightIdle:
-                break;
-            case PlayerMovementState.LeftIdle:
-                break;
-            case PlayerMovementState.DownMove:
-                _currentMovementState = PlayerMovementState.DownIdle;
-                break;
-            case PlayerMovementState.UpMove:
-                _currentMovementState = PlayerMovementState.UpIdle;
-                break;
-        }
+        var previousMovementState = _currentMovementStatus;
 
-        _movementUpdates.OnNext(_currentMovementState);
+        _currentMovementStatus = _currentMovementStatus switch
+        {
+            MovementStatus.RightMove => MovementStatus.RightIdle,
+            MovementStatus.LeftMove => MovementStatus.LeftIdle,
+            MovementStatus.DownMove => MovementStatus.DownIdle,
+            MovementStatus.UpMove => MovementStatus.UpIdle,
+            _ => _currentMovementStatus
+        };
+
+        if (previousMovementState == _currentMovementStatus) return;
+
+        _movementUpdates.OnNext(_currentMovementStatus);
     }
 }

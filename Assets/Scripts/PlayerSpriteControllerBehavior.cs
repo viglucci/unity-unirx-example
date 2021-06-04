@@ -1,4 +1,3 @@
-using DefaultNamespace;
 using UniRx;
 using UnityEngine;
 
@@ -6,8 +5,10 @@ public class PlayerSpriteControllerBehavior : MonoBehaviour
 {
     public RuntimeAnimatorController idleDownAnimator;
     public RuntimeAnimatorController idleUpAnimator;
+    public RuntimeAnimatorController idleSideAnimator;
     public RuntimeAnimatorController walkDownAnimator;
     public RuntimeAnimatorController walkUpAnimator;
+    public RuntimeAnimatorController walkSideAnimator;
 
     private PlayerMovementControllerBehavior _movementController;
 
@@ -19,23 +20,28 @@ public class PlayerSpriteControllerBehavior : MonoBehaviour
             .Subscribe(OnMovementStateUpdate);
     }
 
-    private void OnMovementStateUpdate(PlayerMovementState nextState)
+    private void OnMovementStateUpdate(MovementStatus nextStatus)
     {
         var animator = gameObject.GetComponent<Animator>();
-        switch (nextState)
+        animator.runtimeAnimatorController = nextStatus switch
         {
-            case PlayerMovementState.DownIdle:
-                animator.runtimeAnimatorController = idleDownAnimator;
-                break;
-            case PlayerMovementState.UpIdle:
-                animator.runtimeAnimatorController = idleUpAnimator;
-                break;
-            case PlayerMovementState.DownMove:
-                animator.runtimeAnimatorController = walkDownAnimator;
-                break;
-            case PlayerMovementState.UpMove:
-                animator.runtimeAnimatorController = walkUpAnimator;
-                break;
-        }
+            MovementStatus.DownIdle => idleDownAnimator,
+            MovementStatus.UpIdle => idleUpAnimator,
+            MovementStatus.DownMove => walkDownAnimator,
+            MovementStatus.UpMove => walkUpAnimator,
+            MovementStatus.RightMove => walkSideAnimator,
+            MovementStatus.LeftMove => walkSideAnimator,
+            MovementStatus.RightIdle => idleSideAnimator,
+            MovementStatus.LeftIdle => idleSideAnimator,
+            _ => animator.runtimeAnimatorController
+        };
+        
+        var spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        spriteRenderer.flipX = nextStatus switch
+        {
+            MovementStatus.RightMove => true,
+            MovementStatus.RightIdle => true,
+            _ => false
+        };
     }
 }
