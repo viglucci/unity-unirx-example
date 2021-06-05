@@ -5,9 +5,7 @@ using UnityEngine;
 public class PlayerMovementControllerBehavior : MonoBehaviour
 {
     private const float Speed = 5.0f;
-    private const double XDeltaThreshold = 1.0;
     private Vector3 _nextPosition;
-    private Camera _cam;
     private MovementStatus _currentMovementStatus = MovementStatus.DownIdle;
     private readonly Subject<MovementStatus> _movementUpdates = new Subject<MovementStatus>();
     private readonly Subject<Vector2> _moveTowardsUpdates = new Subject<Vector2>();
@@ -19,9 +17,7 @@ public class PlayerMovementControllerBehavior : MonoBehaviour
     private void Start()
     {
         Debug.Log("ClickToMoveBehavior.Start");
-
-        _cam = Camera.main;
-
+        
         SubscribeToMovementInput();
 
         _movementUpdates.Subscribe(value => Debug.Log(value));
@@ -32,23 +28,14 @@ public class PlayerMovementControllerBehavior : MonoBehaviour
 
     private void SubscribeToMovementInput()
     {
-        Observable
-            .EveryUpdate()
-            // If the player clicks OR holds down the left mouse button
-            .Where(_ => Input.GetMouseButtonUp(0) || Input.GetMouseButton(0))
-            // Perform an action anytime a value is emitted
-            .Subscribe(_ => AssignNextPosition());
+        gameObject.GetComponent<MouseMovementInputController>()
+            .MouseInputs
+            .Subscribe(AssignNextPosition);
     }
 
-    private void AssignNextPosition()
+    private void AssignNextPosition(Vector3 worldPosition)
     {
-        var mousePos = new Vector3(
-            Input.mousePosition.x,
-            Input.mousePosition.y,
-            0.0f);
-
-        _nextPosition = _cam.ScreenToWorldPoint(mousePos);
-
+        _nextPosition = worldPosition;
         UpdateMovementState();
     }
 
