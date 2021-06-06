@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Behaviors
 {
-    public interface IWorldPositionUpdateProviderBehavior
+    public interface IWorldPositionDestinationProvider
     {
         IObservable<Vector3> WorldPositionUpdates { get; }
     }

@@ -19,7 +19,7 @@ namespace Behaviors
         private void Start()
         {
             var orientationProvider = gameObject.GetComponent<OrientationStateProviderBehavior>();
-            var movementController = gameObject.GetComponent<PlayerMovementControllerBehavior>();
+            var movementController = gameObject.GetComponent<WorldPositionDestinationMovementBehavior>();
 
             _currentMovementStatus = movementController.MovementStatus;
             _currentOrientation = orientationProvider.Orientation;

@@ -4,27 +4,34 @@ using UnityEngine;
 
 namespace Behaviors
 {
-    public class PlayerMovementControllerBehavior : MonoBehaviour
+    public class WorldPositionDestinationMovementBehavior : MonoBehaviour
     {
-        private MovementStatus _movementStatus = MovementStatus.Idle;
-
         private const float Speed = 5.0f;
 
         private Vector2 _destinationPosition;
 
+        private DestinationStatus _destinationStatus = DestinationStatus.Reached;
+
         private readonly Subject<(Vector2, Vector2)> _positionUpdates = new Subject<(Vector2, Vector2)>();
+        private readonly Subject<DestinationStatus> _destinationStatusUpdates = new Subject<DestinationStatus>();
 
         private readonly Subject<(MovementStatus, MovementStatus)> _movementStatusUpdates =
             new Subject<(MovementStatus, MovementStatus)>();
 
         public IObservable<(Vector2, Vector2)> PositionUpdates => _positionUpdates.AsObservable();
-        public IObservable<(MovementStatus, MovementStatus)> MovementStatusUpdates => _movementStatusUpdates.AsObservable();
-        public MovementStatus MovementStatus => _movementStatus;
+
+        public IObservable<(MovementStatus, MovementStatus)> MovementStatusUpdates =>
+            _movementStatusUpdates.AsObservable();
+
+        public IObservable<DestinationStatus> DestinationStatusUpdates =>
+            _destinationStatusUpdates.AsObservable();
+
+        public MovementStatus MovementStatus { get; private set; } = MovementStatus.Idle;
 
         private void Awake()
         {
             _destinationPosition = transform.position;
-            SubscribeToMovementInput();
+            SubscribeToDestinationUpdates();
         }
 
         private void Update()
@@ -34,6 +41,7 @@ namespace Behaviors
             if (Equals(previousPosition, nextPosition))
             {
                 UpdateMovementStatus(MovementStatus.Idle);
+                UpdateDestinationStatus(DestinationStatus.Reached);
                 return;
             }
 
@@ -42,24 +50,33 @@ namespace Behaviors
             UpdateMovementStatus(MovementStatus.Moving);
         }
 
+        private void UpdateDestinationStatus(DestinationStatus next)
+        {
+            if (_destinationStatus == next) return;
+            _destinationStatus = next;
+            _destinationStatusUpdates.OnNext(_destinationStatus);
+        }
+
         private void UpdateMovementStatus(MovementStatus next)
         {
-            if (_movementStatus == next) return;
-            var previousMovementStatus = _movementStatus;
-            _movementStatus = next;
+            if (MovementStatus == next) return;
+            var previousMovementStatus = MovementStatus;
+            MovementStatus = next;
             _movementStatusUpdates.OnNext((previousMovementStatus, next));
         }
 
-        private void SubscribeToMovementInput()
+        private void SubscribeToDestinationUpdates()
         {
-            var controller = gameObject.GetComponent<IWorldPositionUpdateProviderBehavior>();
-            var mouseInputs = controller.WorldPositionUpdates;
-            mouseInputs.Subscribe(OnMouseMovementInput);
+            gameObject
+                .GetComponent<IWorldPositionDestinationProvider>()
+                .WorldPositionUpdates
+                .Subscribe(OnDestinationUpdate);
         }
 
-        private void OnMouseMovementInput(Vector3 worldPosition)
+        private void OnDestinationUpdate(Vector3 worldPosition)
         {
             _destinationPosition = worldPosition;
+            UpdateDestinationStatus(DestinationStatus.Unreached);
         }
 
         private Vector2 GetLerpTowards(Vector2 worldPosition)

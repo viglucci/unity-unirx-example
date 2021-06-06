@@ -5,7 +5,7 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Behaviors
 {
-    public class ClickToMoveControllerBehavior : MonoBehaviour, IWorldPositionUpdateProviderBehavior
+    public class ClickToMoveWorldPositionDestinationProvider : MonoBehaviour, IWorldPositionDestinationProvider
     {
         private readonly Subject<Vector3> _mouseInputs = new Subject<Vector3>();
         public IObservable<Vector3> WorldPositionUpdates => _mouseInputs.AsObservable();

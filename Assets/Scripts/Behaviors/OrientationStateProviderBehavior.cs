@@ -20,7 +20,7 @@ namespace Behaviors
             Orientation = initialOrientation;
         
             gameObject
-                .GetComponent<PlayerMovementControllerBehavior>()
+                .GetComponent<WorldPositionDestinationMovementBehavior>()
                 .PositionUpdates
                 .Subscribe(OnPositionUpdate);
         }
