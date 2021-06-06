@@ -52,8 +52,8 @@ namespace Behaviors
 
         private void SubscribeToMovementInput()
         {
-            var controller = gameObject.GetComponent<LeftMouseButtonInputControllerBehavior>();
-            var mouseInputs = controller.MouseInputs;
+            var controller = gameObject.GetComponent<IWorldPositionUpdateProviderBehavior>();
+            var mouseInputs = controller.WorldPositionUpdates;
             mouseInputs.Subscribe(OnMouseMovementInput);
         }
 

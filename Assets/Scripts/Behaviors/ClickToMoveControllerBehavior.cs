@@ -5,10 +5,10 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Behaviors
 {
-    public class LeftMouseButtonInputControllerBehavior : MonoBehaviour
+    public class ClickToMoveControllerBehavior : MonoBehaviour, IWorldPositionUpdateProviderBehavior
     {
         private readonly Subject<Vector3> _mouseInputs = new Subject<Vector3>();
-        public IObservable<Vector3> MouseInputs => _mouseInputs.AsObservable();
+        public IObservable<Vector3> WorldPositionUpdates => _mouseInputs.AsObservable();
 
         void Awake()
         {

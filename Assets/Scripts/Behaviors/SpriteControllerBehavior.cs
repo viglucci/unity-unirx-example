@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Behaviors
 {
-    public class PlayerSpriteControllerBehavior : MonoBehaviour
+    public class SpriteControllerBehavior : MonoBehaviour
     {
         private MovementStatus _currentMovementStatus;
         private Orientation _currentOrientation;
