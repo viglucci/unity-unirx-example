@@ -5,17 +5,16 @@ using Debug = System.Diagnostics.Debug;
 
 public class MouseMovementInputController : MonoBehaviour
 {
-    private IObservable<Vector3> _mouseInputs;
-    public IObservable<Vector3> MouseInputs => _mouseInputs;
+    private readonly Subject<Vector3> _mouseInputs = new Subject<Vector3>();
+    public IObservable<Vector3> MouseInputs => _mouseInputs.AsObservable();
 
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        _mouseInputs = Observable
+        Observable
             .EveryUpdate()
             // If the player clicks OR holds down the left mouse button
             .Where(_ => Input.GetMouseButtonUp(0) || Input.GetMouseButton(0))
-            .Select(_ =>
+            .Subscribe(_ =>
             {
                 var mousePos = new Vector3(
                     Input.mousePosition.x,
@@ -23,8 +22,10 @@ public class MouseMovementInputController : MonoBehaviour
                     0.0f);
 
                 Debug.Assert(Camera.main != null, "Camera.main != null");
-                
-                return Camera.main.ScreenToWorldPoint(mousePos);
+
+                var nextValue = Camera.main.ScreenToWorldPoint(mousePos);
+
+                _mouseInputs.OnNext(nextValue);
             });
     }
 }

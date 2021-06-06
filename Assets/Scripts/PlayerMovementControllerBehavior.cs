@@ -1,5 +1,6 @@
 using System;
 using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 
 public class PlayerMovementControllerBehavior : MonoBehaviour
@@ -20,17 +21,19 @@ public class PlayerMovementControllerBehavior : MonoBehaviour
         
         SubscribeToMovementInput();
 
-        _movementUpdates.Subscribe(value => Debug.Log(value));
+        // _movementUpdates.Subscribe(value => Debug.Log(value));
 
         _moveTowardsUpdates.Subscribe(
             nextPos => transform.position = nextPos);
+
+        //TODO: dont allow movement off of the "map"
     }
 
     private void SubscribeToMovementInput()
     {
-        gameObject.GetComponent<MouseMovementInputController>()
-            .MouseInputs
-            .Subscribe(AssignNextPosition);
+        var controller = gameObject.GetComponent<MouseMovementInputController>();
+        var mouseInputs = controller.MouseInputs;
+        mouseInputs.Subscribe(AssignNextPosition);
     }
 
     private void AssignNextPosition(Vector3 worldPosition)

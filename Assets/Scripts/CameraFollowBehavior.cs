@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraFollowBehavior : MonoBehaviour
@@ -9,13 +6,12 @@ public class CameraFollowBehavior : MonoBehaviour
     public BoxCollider2D mapBounds;
 
     private float _xMin, _xMax, _yMin, _yMax;
-    private float _cameraX, _cameraY;
     private float _camOrthSize;
     private float _camRatio;
     private Camera _mainCam;
     private const float SmoothSpeed = 0.5f;
 
-    void Start()
+    private void Awake()
     {
         var bounds = mapBounds.bounds;
         _xMin = bounds.min.x;
@@ -31,28 +27,26 @@ public class CameraFollowBehavior : MonoBehaviour
     private void Update()
     {
         var followPosition = followTransform.position;
-        _cameraY = Mathf.Clamp(
+        
+        // Don't allow Y to exceed past collider area
+        var cameraY = Mathf.Clamp(
             followPosition.y, 
             _yMin + _camOrthSize, 
             _yMax - _camOrthSize);
         
-        _cameraX = Mathf.Clamp(
+        // Don't allow X to exceed past collider area
+        var cameraX = Mathf.Clamp(
             followPosition.x, 
             _xMin + _camRatio, 
             _xMax - _camRatio);
 
         var existingCameraPos = transform.position;
-        var nextCameraPos = new Vector3(_cameraX, _cameraY, existingCameraPos.z);
+        var nextCameraPos = new Vector3(cameraX, cameraY, existingCameraPos.z);
         var newCameraPosition = Vector3.Lerp(
             existingCameraPos,
             nextCameraPos,
             SmoothSpeed);
-        
-        Debug.Log((
-            existingCameraPos,
-            nextCameraPos
-        ));
-        
+
         transform.position = newCameraPosition;
     }
 }
