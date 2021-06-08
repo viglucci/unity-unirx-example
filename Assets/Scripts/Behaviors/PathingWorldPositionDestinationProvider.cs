@@ -13,57 +13,37 @@ namespace Behaviors
         private readonly Subject<Vector3> _destinations = new Subject<Vector3>();
         public IObservable<Vector3> WorldPositionUpdates => _destinations.AsObservable();
 
+        public Path path;
+
         private void Start()
+        {
+            InitializePoints();
+            
+            IncrementToNextWorldPoint();
+            
+            SubscribeToDestinationStatusUpdates();
+        }
+
+        private void SubscribeToDestinationStatusUpdates()
         {
             gameObject.GetComponent<WorldPositionDestinationMovementBehavior>()
                 .DestinationStatusUpdates
-                .Subscribe(status =>
-                {
-                    if (status != DestinationStatus.Reached) return;
-                    IncrementToNextWorldPoint();
-                });
-
-            InitializePoints();
-
-            IncrementToNextWorldPoint();
+                .Where(status => status == DestinationStatus.Reached)
+                .Subscribe(status => IncrementToNextWorldPoint());
         }
 
         private void InitializePoints()
         {
-            var initial = transform.position;
-
-            var pointOne = new Vector3()
+            var previous = transform.position;
+            foreach (var checkpoint in path.checkPoints)
             {
-                x = initial.x,
-                y = initial.y + 3,
-                z = initial.z
-            };
-            
-            var pointTwo = new Vector3()
-            {
-                x = pointOne.x - 6,
-                y = pointOne.y,
-                z = pointOne.z
-            };
-            
-            var pointThree = new Vector3()
-            {
-                x = pointTwo.x,
-                y = pointTwo.y - 6,
-                z = pointTwo.z
-            };
-            
-            var pointFour = new Vector3()
-            {
-                x = pointThree.x + 6,
-                y = pointThree.y,
-                z = pointThree.z
-            };
-            
-            _points.AddRange(new List<Vector3>()
-            {
-                pointOne, pointTwo, pointThree, pointFour
-            });
+                var point = new Vector3(
+                    previous.x + checkpoint.x,
+                    previous.y + checkpoint.y,
+                    previous.z);
+                _points.Add(point);
+                previous = point;
+            }
         }
 
         private void IncrementToNextWorldPoint()
