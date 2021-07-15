@@ -11,7 +11,8 @@ namespace Behaviors
         private readonly List<Vector3> _points = new List<Vector3>();
 
         private readonly Subject<Vector3> _destinations = new Subject<Vector3>();
-        public IObservable<Vector3> WorldPositionUpdates => _destinations.AsObservable();
+        public Vector3 WorldPosition { get; set; }
+        public IObservable<Vector3> WorldPositionObservable => _destinations.AsObservable();
 
         public Path path;
 

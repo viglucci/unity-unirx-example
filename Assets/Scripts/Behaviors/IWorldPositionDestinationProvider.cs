@@ -5,6 +5,8 @@ namespace Behaviors
 {
     public interface IWorldPositionDestinationProvider
     {
-        IObservable<Vector3> WorldPositionUpdates { get; }
+        Vector3 WorldPosition { get; set; }
+        
+        IObservable<Vector3> WorldPositionObservable { get; }
     }
 }

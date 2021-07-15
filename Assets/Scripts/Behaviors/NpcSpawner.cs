@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Behaviors
@@ -10,7 +9,8 @@ namespace Behaviors
 
         public GameObject CreateNpc()
         {
-            return Instantiate(npcPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+            var defaultPosition = new Vector3(0, 0, 0);
+            return Instantiate(npcPrefab, defaultPosition, Quaternion.identity);
         }
     }
 }

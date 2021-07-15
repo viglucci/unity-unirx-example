@@ -69,7 +69,7 @@ namespace Behaviors
         {
             gameObject
                 .GetComponent<IWorldPositionDestinationProvider>()
-                .WorldPositionUpdates
+                .WorldPositionObservable
                 .Subscribe(OnDestinationUpdate);
         }
 
