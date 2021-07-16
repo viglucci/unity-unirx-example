@@ -65375,11 +65375,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1136602092830572311, guid: 242b4ba833608da49b4a3f15124ff2d0, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.7961181
+      value: -3.63
       objectReference: {fileID: 0}
     - target: {fileID: 1136602092830572311, guid: 242b4ba833608da49b4a3f15124ff2d0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.010205075
+      value: -3.11
       objectReference: {fileID: 0}
     - target: {fileID: 1136602092830572311, guid: 242b4ba833608da49b4a3f15124ff2d0, type: 3}
       propertyPath: m_LocalPosition.z
@@ -65473,6 +65473,10 @@ PrefabInstance:
     - target: {fileID: 4742372429252943083, guid: 608f3fafedfde93499fe5fd9e4573375, type: 3}
       propertyPath: m_Name
       value: PathingNpc
+      objectReference: {fileID: 0}
+    - target: {fileID: 4742372429252943083, guid: 608f3fafedfde93499fe5fd9e4573375, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4863439602926142259, guid: 608f3fafedfde93499fe5fd9e4573375, type: 3}
       propertyPath: initialOrientation
