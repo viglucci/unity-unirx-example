@@ -8,6 +8,8 @@ namespace Behaviors
     {
         private MovementStatus _currentMovementStatus;
         private Orientation _currentOrientation;
+        private SpriteRenderer _spriteRenderer;
+        private Animator _animator;
     
         public RuntimeAnimatorController idleDownAnimator;
         public RuntimeAnimatorController idleUpAnimator;
@@ -18,6 +20,8 @@ namespace Behaviors
 
         private void Start()
         {
+            _spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+            _animator = gameObject.GetComponent<Animator>();
             var orientationProvider = gameObject.GetComponent<OrientationStateProviderBehavior>();
             var movementController = gameObject.GetComponent<WorldPositionDestinationMovementBehavior>();
 
@@ -39,10 +43,9 @@ namespace Behaviors
             UpdateSprite();
         }
 
-        private void OnMovementStatusUpdate((MovementStatus, MovementStatus) update)
+        private void OnMovementStatusUpdate((MovementStatus, MovementStatus current) update)
         {
-            var current = update.Item2;
-            _currentMovementStatus = current;
+            _currentMovementStatus = update.current;
             UpdateSprite();
         }
     
@@ -50,18 +53,31 @@ namespace Behaviors
         {
             var orientation = _currentOrientation;
             var isIdle = _currentMovementStatus == MovementStatus.Idle;
-            var animator = gameObject.GetComponent<Animator>();
-            animator.runtimeAnimatorController = orientation switch
-            {
-                Orientation.Up => isIdle ? idleUpAnimator : walkUpAnimator,
-                Orientation.Right => isIdle ? idleSideAnimator : walkSideAnimator,
-                Orientation.Down => isIdle ? idleDownAnimator : walkDownAnimator,
-                Orientation.Left => isIdle ? idleSideAnimator : walkSideAnimator,
-                _ => throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null)
-            };
 
-            var spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
-            spriteRenderer.flipX = orientation switch
+            if (isIdle)
+            {
+                _animator.runtimeAnimatorController = orientation switch
+                {
+                    Orientation.Up => idleUpAnimator,
+                    Orientation.Right => idleSideAnimator,
+                    Orientation.Down => idleDownAnimator,
+                    Orientation.Left => idleSideAnimator,
+                    _ => throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null)
+                };
+            }
+            else
+            {
+                _animator.runtimeAnimatorController = orientation switch
+                {
+                    Orientation.Up => walkUpAnimator,
+                    Orientation.Right => walkSideAnimator,
+                    Orientation.Down => walkDownAnimator,
+                    Orientation.Left => walkSideAnimator,
+                    _ => throw new ArgumentOutOfRangeException(nameof(orientation), orientation, null)
+                };
+            }
+
+            _spriteRenderer.flipX = orientation switch
             {
                 Orientation.Right => true,
                 _ => false

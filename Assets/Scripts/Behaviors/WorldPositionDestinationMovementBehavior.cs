@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Behaviors
 {
+    [RequireComponent(typeof(IWorldPositionDestinationProvider))]
     public class WorldPositionDestinationMovementBehavior : MonoBehaviour
     {
         private const float Speed = 5.0f;
@@ -67,8 +68,16 @@ namespace Behaviors
 
         private void SubscribeToDestinationUpdates()
         {
-            gameObject
-                .GetComponent<IWorldPositionDestinationProvider>()
+            var destinationProvider = gameObject
+                .GetComponent<IWorldPositionDestinationProvider>();
+            
+            if (destinationProvider == null)
+            {
+                Debug.LogError("Movement controller requires a world position destination provider.");
+                return;
+            }
+
+            destinationProvider
                 .WorldPositionObservable
                 .Subscribe(OnDestinationUpdate);
         }
